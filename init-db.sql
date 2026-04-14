@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS pipeline_consumers (
   jobs_failed INTEGER DEFAULT 0,
   avg_processing_time_ms INTEGER DEFAULT 0,
   is_priority BOOLEAN DEFAULT FALSE,
-  last_job_status VARCHAR(20)
+  last_job_status VARCHAR(20),
+  entity_type VARCHAR(20) DEFAULT 'scene'
 );
 
 -- Pipeline queue metrics table (for queue depth tracking)
@@ -56,7 +57,8 @@ CREATE TABLE IF NOT EXISTS pipeline_process_history (
   duration_ms INTEGER NOT NULL,
   error_message TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
-  is_priority BOOLEAN DEFAULT FALSE
+  is_priority BOOLEAN DEFAULT FALSE,
+  entity_type VARCHAR(20) DEFAULT 'scene'
 );
 
 -- Optimization results table (for storing final optimization status per entity)
