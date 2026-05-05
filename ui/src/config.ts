@@ -8,8 +8,10 @@ export const CONFIG = {
   OPTIMIZATION_API_URL: import.meta.env.VITE_OPTIMIZATION_API_URL || 'https://optimized-assets.dclexplorer.com/v3',
 
   // API URL for monitoring endpoints and report data
-  // Empty string means same-origin (works for both local dev with Vite proxy and Docker deployment)
-  VERCEL_APP_URL: '',
+  // Derived from Vite's base path so the app works under any path prefix
+  // (e.g. base '/' → '', base '/optimization/' → '/optimization').
+  // Same-origin in all cases; the prefix routes through nginx/cloudflared.
+  VERCEL_APP_URL: import.meta.env.BASE_URL.replace(/\/$/, ''),
 
   // Worlds content server API
   WORLDS_API_URL: import.meta.env.VITE_WORLDS_API_URL || 'https://worlds-content-server.decentraland.org',
@@ -53,7 +55,7 @@ export const URLS = {
 
   // Get scene report URL from API with full URL (for display)
   getSceneReportApiFullUrl(sceneId: string) {
-    return `${CONFIG.CURRENT_ORIGIN}/api/report/${sceneId}`;
+    return `${CONFIG.CURRENT_ORIGIN}${CONFIG.VERCEL_APP_URL}/api/report/${sceneId}`;
   },
 
   // Get optimized asset URL

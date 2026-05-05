@@ -24,10 +24,12 @@ WORKDIR /app
 # Build args for UI configuration (can be overridden at build time)
 ARG VITE_OPTIMIZATION_API_URL=https://optimized-assets.dclexplorer.com/v3
 ARG VITE_WORLDS_API_URL=https://worlds-content-server.decentraland.org
+ARG VITE_BASE_PATH=/
 
 # Set as env vars for Vite build
 ENV VITE_OPTIMIZATION_API_URL=$VITE_OPTIMIZATION_API_URL
 ENV VITE_WORLDS_API_URL=$VITE_WORLDS_API_URL
+ENV VITE_BASE_PATH=$VITE_BASE_PATH
 
 # Copy UI package files
 COPY ui/package*.json ./
