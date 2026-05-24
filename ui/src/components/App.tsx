@@ -1,53 +1,56 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { TabName, MapView, LandData } from '../types';
+import type { TabName, OverviewSection } from '../types';
 import { useReportData } from '../hooks/useReportData';
 import { Header } from './Header';
 import { TabNavigation } from './TabNavigation';
-import { StatsGrid } from './StatsGrid';
-import { ProgressBar } from './ProgressBar';
-import { WorldMap } from './WorldMap/WorldMap';
-import { ViewToggle } from './ViewToggle';
-import { Legend } from './Legend';
-import { Tooltip } from './Tooltip';
-import { ReportModal } from './ReportModal';
-import { HistoryView } from './HistoryView';
+import { OverviewSubTabs } from './OverviewSubTabs';
+import { GenesisCitySection } from './GenesisCitySection';
 import { WorldsList } from './WorldsList';
+import { WearablesEmotesSection } from './WearablesEmotesSection';
+import { HistoryView } from './HistoryView';
 import { PipelineMonitor } from './PipelineMonitor';
 import { RankingView } from './RankingView';
 import { FailingView } from './FailingView';
 
 const TAB_HASH_MAP: Record<string, TabName> = {
   '#overview': 'overview',
-  '#worlds': 'worlds',
   '#pipeline': 'pipeline',
   '#ranking': 'ranking',
   '#failing': 'failing',
   '#history': 'history',
 };
 
-const VALID_TABS: TabName[] = ['overview', 'worlds', 'pipeline', 'ranking', 'failing', 'history'];
+const VALID_TABS: TabName[] = ['overview', 'pipeline', 'ranking', 'failing', 'history'];
 
 function getTabFromHash(): TabName {
   const hash = window.location.hash;
+  if (hash === '#worlds') return 'overview';
   return TAB_HASH_MAP[hash] || 'overview';
+}
+
+function getOverviewSectionFromHash(): OverviewSection {
+  if (window.location.hash === '#worlds') return 'worlds';
+  return 'genesis-city';
 }
 
 export default function App() {
   const { data, isLoading, error, generatingStatus } = useReportData();
   const [activeTab, setActiveTab] = useState<TabName>(getTabFromHash);
-  const [mapView, setMapView] = useState<MapView>('optimization');
-  const [hoveredLand, setHoveredLand] = useState<{ land: LandData; x: number; y: number } | null>(null);
-  const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
+  const [overviewSection, setOverviewSection] = useState<OverviewSection>(getOverviewSectionFromHash);
 
-  // Update URL hash when tab changes
   const handleTabChange = useCallback((tab: TabName) => {
     setActiveTab(tab);
     window.location.hash = tab;
   }, []);
 
-  // Listen for hash changes (back/forward navigation)
   useEffect(() => {
     const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === '#worlds') {
+        setActiveTab('overview');
+        setOverviewSection('worlds');
+        return;
+      }
       const newTab = getTabFromHash();
       if (VALID_TABS.includes(newTab)) {
         setActiveTab(newTab);
@@ -58,28 +61,8 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const handleLandClick = useCallback((land: LandData) => {
-    if (land.sceneId) {
-      setSelectedSceneId(land.sceneId);
-    }
-  }, []);
-
-  const handleLandHover = useCallback((land: LandData | null, x: number, y: number) => {
-    if (land) {
-      setHoveredLand({ land, x, y });
-    } else {
-      setHoveredLand(null);
-    }
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    setSelectedSceneId(null);
-  }, []);
-
-  // Check if report data is ready
   const reportNotReady = !data && (isLoading || generatingStatus || error);
 
-  // Render generating/loading status for tabs that need report data
   const renderReportLoadingStatus = () => {
     if (isLoading && !generatingStatus) {
       return <div className="loading">Loading report data...</div>;
@@ -116,6 +99,34 @@ export default function App() {
     return null;
   };
 
+  const renderOverviewContent = () => {
+    if (overviewSection === 'wearables-emotes') {
+      return <WearablesEmotesSection />;
+    }
+
+    if (reportNotReady) {
+      return renderReportLoadingStatus();
+    }
+
+    if (!data) return null;
+
+    if (overviewSection === 'genesis-city') {
+      return (
+        <GenesisCitySection
+          lands={data.lands}
+          stats={data.stats}
+          sceneColorIndices={data.sceneColorIndices}
+        />
+      );
+    }
+
+    if (overviewSection === 'worlds') {
+      return <WorldsList worlds={data.worlds} stats={data.worldsStats} />;
+    }
+
+    return null;
+  };
+
   return (
     <div className="container">
       <Header generatedAt={data?.generatedAt || null} />
@@ -123,37 +134,8 @@ export default function App() {
 
       {activeTab === 'overview' && (
         <div className="tab-content active">
-          {reportNotReady ? (
-            renderReportLoadingStatus()
-          ) : data && (
-            <>
-              <ProgressBar percentage={data.stats.optimizationPercentage} />
-              <StatsGrid stats={data.stats} />
-
-              <div className="map-section">
-                <h2 className="map-title">Interactive World Map</h2>
-                <ViewToggle currentView={mapView} onViewChange={setMapView} />
-                <WorldMap
-                  lands={data.lands}
-                  sceneColorIndices={data.sceneColorIndices}
-                  view={mapView}
-                  onLandClick={handleLandClick}
-                  onLandHover={handleLandHover}
-                />
-                <Legend view={mapView} />
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'worlds' && (
-        <div className="tab-content active">
-          {reportNotReady ? (
-            renderReportLoadingStatus()
-          ) : data && (
-            <WorldsList worlds={data.worlds} stats={data.worldsStats} />
-          )}
+          <OverviewSubTabs activeSection={overviewSection} onSectionChange={setOverviewSection} />
+          {renderOverviewContent()}
         </div>
       )}
 
@@ -184,12 +166,6 @@ export default function App() {
           <HistoryView />
         </div>
       )}
-
-      {hoveredLand && (
-        <Tooltip land={hoveredLand.land} x={hoveredLand.x} y={hoveredLand.y} />
-      )}
-
-      <ReportModal sceneId={selectedSceneId} entityType="scene" onClose={handleCloseModal} />
     </div>
   );
 }

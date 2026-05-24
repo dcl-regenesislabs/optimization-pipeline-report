@@ -8,7 +8,6 @@ interface TabNavigationProps {
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   const tabs: { id: TabName; label: string }[] = [
     { id: 'overview', label: 'Overview' },
-    { id: 'worlds', label: 'Worlds' },
     { id: 'pipeline', label: 'Pipeline' },
     { id: 'ranking', label: 'Ranking' },
     { id: 'failing', label: 'Failing' },

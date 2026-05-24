@@ -13,7 +13,8 @@ import {
   setupDbHandler,
   optimizationResultsHandler,
   optimizationResultByIdHandler,
-  reportJsonHandler
+  reportJsonHandler,
+  optimizationStatsHandler
 } from './monitoring'
 import { reportDataHandler, reportStatusHandler } from './report'
 
@@ -44,6 +45,7 @@ export async function setupRoutes(globalContext: GlobalContext): Promise<Router<
   // Optimization results endpoints
   router.get('/api/optimization-results', optimizationResultsHandler)
   router.get('/api/optimization-results/:entityId', optimizationResultByIdHandler)
+  router.get('/api/optimization-stats', optimizationStatsHandler)
 
   // Direct report JSON endpoint (avoids CDN cache issues)
   router.get('/api/report/:entityId', reportJsonHandler)

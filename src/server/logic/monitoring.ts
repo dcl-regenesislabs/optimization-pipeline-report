@@ -12,7 +12,9 @@ import {
   EntityType,
   OptimizationResult,
   OptimizationResultsResponse,
-  OptimizationResultsQuery
+  OptimizationResultsQuery,
+  OptimizationStatsResponse,
+  EntityOptimizationStats
 } from '../types'
 
 const ENTITY_TYPES: EntityType[] = ['scene', 'wearable', 'emote']
@@ -941,5 +943,51 @@ export async function getOptimizationResultByEntityId(
     }
   } catch (e) {
     return null
+  }
+}
+
+export async function getOptimizationStats(
+  postgres: IPostgresComponent
+): Promise<OptimizationStatsResponse> {
+  const empty: EntityOptimizationStats = { total: 0, success: 0, failed: 0, optimizationPercentage: 0 }
+
+  try {
+    const result = await postgres.query(`
+      SELECT entity_type, status, COUNT(*) as count
+      FROM optimization_results
+      WHERE entity_type IN ('wearable', 'emote')
+      GROUP BY entity_type, status
+    `)
+
+    const stats: Record<string, EntityOptimizationStats> = {
+      wearable: { ...empty },
+      emote: { ...empty }
+    }
+
+    for (const row of result.rows) {
+      const type = row.entity_type as string
+      const count = parseInt(row.count, 10)
+      if (stats[type]) {
+        stats[type].total += count
+        if (row.status === 'success') {
+          stats[type].success = count
+        } else if (row.status === 'failed') {
+          stats[type].failed = count
+        }
+      }
+    }
+
+    for (const type of ['wearable', 'emote']) {
+      if (stats[type].total > 0) {
+        stats[type].optimizationPercentage = Math.round((stats[type].success / stats[type].total) * 10000) / 100
+      }
+    }
+
+    return {
+      wearables: stats.wearable,
+      emotes: stats.emote
+    }
+  } catch (e) {
+    return { wearables: { ...empty }, emotes: { ...empty } }
   }
 }

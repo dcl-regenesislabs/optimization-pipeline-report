@@ -67,6 +67,11 @@ export const URLS = {
   get monitoringStatus() {
     return `${CONFIG.VERCEL_APP_URL}/api/monitoring/status`;
   },
+
+  // Get optimization stats URL (aggregate wearable/emote counts)
+  get optimizationStats() {
+    return `${CONFIG.VERCEL_APP_URL}/api/optimization-stats`;
+  },
 } as const;
 
 // Export API base URL for direct use in components

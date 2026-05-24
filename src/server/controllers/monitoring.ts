@@ -17,7 +17,8 @@ import {
   getFailedJobs,
   setupDatabase,
   getOptimizationResults,
-  getOptimizationResultByEntityId
+  getOptimizationResultByEntityId,
+  getOptimizationStats
 } from '../logic/monitoring'
 import { EntityType } from '../types'
 
@@ -582,6 +583,26 @@ export async function reportJsonHandler(context: HandlerContext): Promise<IHttpS
     return {
       status: 500,
       body: { error: 'Failed to fetch report: ' + error.message }
+    }
+  }
+}
+
+export async function optimizationStatsHandler(context: HandlerContext): Promise<IHttpServerComponent.IResponse> {
+  const { components } = context
+  const logger = components.logs.getLogger('monitoring')
+
+  try {
+    const result = await getOptimizationStats(components.postgres)
+
+    return {
+      status: 200,
+      body: result
+    }
+  } catch (error: any) {
+    logger.error('Error fetching optimization stats', { error: error.message })
+    return {
+      status: 500,
+      body: { error: 'Failed to fetch optimization stats: ' + error.message }
     }
   }
 }

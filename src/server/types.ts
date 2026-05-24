@@ -236,3 +236,15 @@ export interface OptimizationResultsQuery {
   status?: 'success' | 'failed'
   entityType?: EntityType
 }
+
+export interface EntityOptimizationStats {
+  total: number
+  success: number
+  failed: number
+  optimizationPercentage: number
+}
+
+export interface OptimizationStatsResponse {
+  wearables: EntityOptimizationStats
+  emotes: EntityOptimizationStats
+}

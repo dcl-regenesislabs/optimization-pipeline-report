@@ -82,7 +82,20 @@ export interface HistoryEntry {
 }
 
 export type MapView = 'optimization' | 'scenes';
-export type TabName = 'overview' | 'worlds' | 'pipeline' | 'ranking' | 'failing' | 'history';
+export type TabName = 'overview' | 'pipeline' | 'ranking' | 'failing' | 'history';
+export type OverviewSection = 'genesis-city' | 'worlds' | 'wearables-emotes';
+
+export interface WearableEmoteStats {
+  total: number;
+  success: number;
+  failed: number;
+  optimizationPercentage: number;
+}
+
+export interface OptimizationStatsData {
+  wearables: WearableEmoteStats;
+  emotes: WearableEmoteStats;
+}
 
 export interface RankingEntry {
   rank: number;
