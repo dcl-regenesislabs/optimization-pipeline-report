@@ -245,6 +245,6 @@ export interface EntityOptimizationStats {
 }
 
 export interface OptimizationStatsResponse {
-  wearables: EntityOptimizationStats
-  emotes: EntityOptimizationStats
+  wearables: EntityOptimizationStats & { failedEntityIds: string[] }
+  emotes: EntityOptimizationStats & { failedEntityIds: string[] }
 }

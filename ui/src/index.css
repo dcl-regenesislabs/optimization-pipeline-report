@@ -125,9 +125,30 @@ body {
 }
 
 .entity-stats-group h3 {
-  margin-bottom: 15px;
+  margin: 0;
   font-size: 1.2em;
   color: #333;
+}
+
+.entity-stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.requeue-actions {
+  padding: 0 30px 15px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.worlds-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #6c757d;
+  padding: 10px 0;
 }
 
 .stats {

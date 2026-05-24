@@ -90,6 +90,7 @@ export interface WearableEmoteStats {
   success: number;
   failed: number;
   optimizationPercentage: number;
+  failedEntityIds: string[];
 }
 
 export interface OptimizationStatsData {

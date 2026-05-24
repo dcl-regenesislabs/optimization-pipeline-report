@@ -950,6 +950,7 @@ export async function getOptimizationStats(
   postgres: IPostgresComponent
 ): Promise<OptimizationStatsResponse> {
   const empty: EntityOptimizationStats = { total: 0, success: 0, failed: 0, optimizationPercentage: 0 }
+  const emptyWithIds = { ...empty, failedEntityIds: [] as string[] }
 
   try {
     const result = await postgres.query(`
@@ -983,11 +984,26 @@ export async function getOptimizationStats(
       }
     }
 
+    // Fetch failed entity IDs
+    const failedResult = await postgres.query(`
+      SELECT entity_id, entity_type
+      FROM optimization_results
+      WHERE entity_type IN ('wearable', 'emote') AND status = 'failed'
+      ORDER BY completed_at DESC
+    `)
+
+    const failedWearableIds: string[] = []
+    const failedEmoteIds: string[] = []
+    for (const row of failedResult.rows) {
+      if (row.entity_type === 'wearable') failedWearableIds.push(row.entity_id)
+      else if (row.entity_type === 'emote') failedEmoteIds.push(row.entity_id)
+    }
+
     return {
-      wearables: stats.wearable,
-      emotes: stats.emote
+      wearables: { ...stats.wearable, failedEntityIds: failedWearableIds },
+      emotes: { ...stats.emote, failedEntityIds: failedEmoteIds }
     }
   } catch (e) {
-    return { wearables: { ...empty }, emotes: { ...empty } }
+    return { wearables: { ...emptyWithIds }, emotes: { ...emptyWithIds } }
   }
 }

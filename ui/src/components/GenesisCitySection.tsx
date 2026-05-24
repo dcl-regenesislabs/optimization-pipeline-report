@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { MapView, LandData, Stats } from '../types';
 import { StatsGrid } from './StatsGrid';
 import { ProgressBar } from './ProgressBar';
@@ -7,6 +7,7 @@ import { ViewToggle } from './ViewToggle';
 import { Legend } from './Legend';
 import { Tooltip } from './Tooltip';
 import { ReportModal } from './ReportModal';
+import { BulkQueueButton } from './shared/BulkQueueButton';
 
 interface GenesisCitySectionProps {
   lands: LandData[];
@@ -33,10 +34,29 @@ export function GenesisCitySection({ lands, stats, sceneColorIndices }: GenesisC
     }
   }, []);
 
+  const notOptimizedEntities = useMemo(() => {
+    const seen = new Set<string>();
+    return lands
+      .filter(land => land.sceneId && !land.hasOptimizedAssets)
+      .filter(land => {
+        if (seen.has(land.sceneId!)) return false;
+        seen.add(land.sceneId!);
+        return true;
+      })
+      .map(land => ({ entityId: land.sceneId!, entityType: 'scene' as const }));
+  }, [lands]);
+
   return (
     <>
       <ProgressBar percentage={stats.optimizationPercentage} />
       <StatsGrid stats={stats} />
+
+      <div className="requeue-actions">
+        <BulkQueueButton
+          entities={notOptimizedEntities}
+          label={`Re-queue Not Optimized Scenes (${notOptimizedEntities.length})`}
+        />
+      </div>
 
       <div className="map-section">
         <h2 className="map-title">Interactive World Map</h2>

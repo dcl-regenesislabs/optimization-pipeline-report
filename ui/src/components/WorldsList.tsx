@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { WorldWithOptimization, WorldsStats } from '../types';
 import { ReportModal } from './ReportModal';
+import { BulkQueueButton } from './shared/BulkQueueButton';
 
 type FilterType = 'all' | 'optimized' | 'not-optimized';
 
@@ -13,6 +14,13 @@ export function WorldsList({ worlds, stats }: WorldsListProps) {
   const [filter, setFilter] = useState<FilterType>('all');
   const [selectedWorld, setSelectedWorld] = useState<WorldWithOptimization | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const notOptimizedEntities = useMemo(() =>
+    worlds
+      .filter(w => !w.hasOptimizedAssets)
+      .map(w => ({ entityId: w.sceneId, entityType: 'scene' as const })),
+    [worlds]
+  );
 
   const filteredWorlds = worlds.filter((world) => {
     const matchesFilter =
@@ -90,8 +98,12 @@ export function WorldsList({ worlds, stats }: WorldsListProps) {
         </div>
       </div>
 
-      <div className="worlds-count">
-        Showing {filteredWorlds.length} of {worlds.length} worlds
+      <div className="worlds-count-row">
+        <span>Showing {filteredWorlds.length} of {worlds.length} worlds</span>
+        <BulkQueueButton
+          entities={notOptimizedEntities}
+          label={`Re-queue Not Optimized (${notOptimizedEntities.length})`}
+        />
       </div>
 
       <div className="worlds-grid">

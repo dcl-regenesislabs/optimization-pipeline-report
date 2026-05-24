@@ -1,11 +1,31 @@
+import { useMemo } from 'react';
 import { useOptimizationStats } from '../hooks/useOptimizationStats';
 import type { WearableEmoteStats } from '../types';
 import { formatNumber } from '../utils/formatters';
+import { BulkQueueButton } from './shared/BulkQueueButton';
 
-function EntityStatsGroup({ title, icon, stats }: { title: string; icon: string; stats: WearableEmoteStats }) {
+function EntityStatsGroup({ title, icon, stats, entityType }: {
+  title: string;
+  icon: string;
+  stats: WearableEmoteStats;
+  entityType: 'wearable' | 'emote';
+}) {
+  const failedEntities = useMemo(() =>
+    stats.failedEntityIds.map(id => ({ entityId: id, entityType })),
+    [stats.failedEntityIds, entityType]
+  );
+
   return (
     <div className="entity-stats-group">
-      <h3>{icon} {title}</h3>
+      <div className="entity-stats-header">
+        <h3>{icon} {title}</h3>
+        {failedEntities.length > 0 && (
+          <BulkQueueButton
+            entities={failedEntities}
+            label={`Re-queue Failed (${failedEntities.length})`}
+          />
+        )}
+      </div>
       <div className="worlds-stats">
         <div className="stat-card">
           <div className="stat-value">{formatNumber(stats.total)}</div>
@@ -55,8 +75,8 @@ export function WearablesEmotesSection() {
 
   return (
     <div className="wearables-emotes-section">
-      <EntityStatsGroup title="Wearables" icon="👕" stats={data.wearables} />
-      <EntityStatsGroup title="Emotes" icon="💃" stats={data.emotes} />
+      <EntityStatsGroup title="Wearables" icon="👕" stats={data.wearables} entityType="wearable" />
+      <EntityStatsGroup title="Emotes" icon="💃" stats={data.emotes} entityType="emote" />
     </div>
   );
 }
